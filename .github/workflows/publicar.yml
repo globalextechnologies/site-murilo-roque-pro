@@ -33,8 +33,6 @@ jobs:
   publicar:
     name: ${{ github.event.inputs.acao || 'publicar' }}
     runs-on: ubuntu-latest
-    # Só roda depois que a AWS estiver conectada (variável AWS_ROLE_ARN criada no repositório)
-    if: ${{ vars.AWS_ROLE_ARN != '' }}
     timeout-minutes: 45
     env:
       ACAO: ${{ github.event.inputs.acao || 'publicar' }}
@@ -42,17 +40,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # A permissão da AWS vem da variável AWS_ROLE_ARN do repositório ou do arquivo aws/aws-role-arn.txt
+      - name: Conferir conexão com a AWS
+        id: aws
+        env:
+          ARN_VARIAVEL: ${{ vars.AWS_ROLE_ARN }}
+        run: |
+          ARN="$ARN_VARIAVEL"
+          if [[ -z "$ARN" && -f aws/aws-role-arn.txt ]]; then ARN="$(grep -o 'arn:aws:iam::[0-9]*:role/[A-Za-z0-9+=,.@_-]*' aws/aws-role-arn.txt | head -1 || true)"; fi
+          echo "arn=$ARN" >> "$GITHUB_OUTPUT"
+          if [[ -z "$ARN" ]]; then
+            echo "AWS ainda não conectada: rode aws/conectar-github.sh no CloudShell." | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Entrar na AWS
+        if: steps.aws.outputs.arn != ''
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          role-to-assume: ${{ steps.aws.outputs.arn }}
           role-session-name: publicar-site-${{ github.run_id }}
           aws-region: us-east-1
 
       - name: Instalar AWS SAM
+        if: steps.aws.outputs.arn != ''
         uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
 
       - name: Executar
+        if: steps.aws.outputs.arn != ''
         run: bash aws/deploy.sh "$ACAO"

@@ -1,0 +1,6 @@
+# Permissão da AWS usada pelo GitHub Actions para publicar o site.
+# Gerada pelo aws/conectar-github.sh. Não é segredo: sozinha não dá acesso a nada,
+# só funciona para a branch main deste repositório.
+#
+# Cole a linha arn:aws:iam::... abaixo:
+

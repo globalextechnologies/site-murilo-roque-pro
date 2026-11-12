@@ -92,5 +92,4 @@ printf '\033[32m%s\033[0m\n' "Pronto! Copie este código e mande para o Claude (
 echo
 echo "    $ARN"
 echo
-echo "No GitHub: repositório > Settings > Secrets and variables > Actions > aba Variables >"
-echo "New repository variable  ->  Nome: AWS_ROLE_ARN   Valor: o código acima"
+echo "Ou cole você mesmo no arquivo aws/aws-role-arn.txt do repositório (pelo site do GitHub: abrir o arquivo > lápis > colar > Commit)."

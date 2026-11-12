@@ -184,8 +184,10 @@ cmd_publicar() {
   id="$(zona_id)"
   if [[ "$id" == "None" || -z "$id" ]]; then
     if [[ "${AUTOMATICO:-0}" == "1" ]]; then
-      amarelo "Zona DNS ainda não criada; publicação automática ignorada."
-      resumo "⏸️ Publicação ignorada: rode a ação **zona** primeiro (Actions > Publicar site > Run workflow)."
+      # Primeira execução automática: cria a zona e mostra os nameservers para a Hostinger
+      cmd_zona
+      resumo ""
+      resumo "⏸️ Troque os nameservers na Hostinger. A publicação acontece na próxima execução, depois que o DNS propagar."
       exit 0
     fi
     vermelho "Rode primeiro:  bash deploy.sh zona"; exit 1

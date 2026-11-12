@@ -28,10 +28,10 @@ Tudo fica em `us-east-1` (Norte da Virgínia). É lá que o CloudFront exige o c
    ```bash
    bash conectar-github.sh
    ```
-4. No fim aparece um código como `arn:aws:iam::123456789012:role/mrpro-github-publicar`. Mande para o Claude, ou cadastre no GitHub: repositório → **Settings → Secrets and variables → Actions → Variables → New repository variable**, com nome `AWS_ROLE_ARN` e o código como valor.
+4. No fim aparece um código como `arn:aws:iam::123456789012:role/mrpro-github-publicar`. Mande para o Claude, ou cole você mesmo no arquivo `aws/aws-role-arn.txt` do repositório.
 
 ### 2. Criar a zona DNS
-No GitHub: **Actions → Publicar site → Run workflow → ação `zona`**. Ao terminar, a página da execução mostra **4 nameservers**. Os registros de e-mail que você já tem são copiados sozinhos, então um e-mail @muriloroque.pro na Hostinger continua funcionando.
+Acontece sozinho na primeira execução depois que o código do passo 1 entra no repositório. Também dá para rodar à mão: **Actions → Publicar site → Run workflow → ação `zona`**. A página da execução mostra **4 nameservers**. Os registros de e-mail que você já tem são copiados sozinhos, então um e-mail @muriloroque.pro na Hostinger continua funcionando.
 
 ### 3. Apontar o domínio na Hostinger
 hPanel → **Domínios → muriloroque.pro → DNS / Nameservers → Alterar nameservers → personalizados**. Cole os 4 nameservers e salve.
