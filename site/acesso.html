@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Área do cliente | MURILO ROQUE PRO</title>
+  <meta name="description" content="Entre ou crie sua conta na área do cliente MURILO ROQUE PRO.">
+  <meta name="theme-color" content="#070c1a">
+  <meta name="robots" content="noindex">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MR PRO">
+  <link rel="apple-touch-icon" href="assets/img/icon-180.png">
+  <link rel="icon" type="image/png" href="assets/img/icon-32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Unbounded:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body class="auth-body">
+  <div class="auth">
+    <aside class="auth-side" aria-hidden="true">
+      <a href="index.html" class="auth-logo" tabindex="-1"><img src="assets/img/wordmark-white.png" alt="" width="200" height="17"></a>
+      <div class="auth-rings">
+        <svg viewBox="0 0 400 400">
+          <circle cx="200" cy="200" r="190" pathLength="100" stroke-dasharray="58 6 22 14"/>
+          <circle cx="200" cy="200" r="160" pathLength="100" stroke-dasharray="12 4 40 9 26 9" class="thick"/>
+          <circle cx="200" cy="200" r="130" pathLength="100" stroke-dasharray="70 10 14 6"/>
+          <circle cx="200" cy="200" r="190" pathLength="100" stroke-dasharray="4 96" class="sig"/>
+        </svg>
+        <img src="assets/img/emblem-hero.png" alt="">
+      </div>
+      <p class="auth-quote">Projetos, faturas e suporte num só lugar.</p>
+    </aside>
+
+    <main class="auth-main">
+      <a href="index.html" class="auth-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        Voltar ao site
+      </a>
+
+      <div class="auth-card">
+        <img class="auth-mark" src="assets/img/emblem-white.png" alt="MURILO ROQUE PRO" width="56" height="56">
+
+        <div class="seg" role="tablist" aria-label="Acesso">
+          <button role="tab" id="tab-entrar" aria-controls="painel-entrar" aria-selected="true">Entrar</button>
+          <button role="tab" id="tab-cadastro" aria-controls="painel-cadastro" aria-selected="false">Criar conta</button>
+        </div>
+
+        <div class="demo-note" id="demo-note" hidden>Modo demonstração: as contas ficam salvas só neste navegador.</div>
+
+        <!-- ENTRAR -->
+        <section id="painel-entrar" role="tabpanel" aria-labelledby="tab-entrar">
+          <h1>Bem-vindo de volta</h1>
+          <p class="muted sub">Entre para acompanhar seus projetos.</p>
+          <form id="form-entrar" class="form" novalidate>
+            <div class="field"><label for="l-email">E-mail</label><input class="input" id="l-email" type="email" autocomplete="username" inputmode="email" required></div>
+            <div class="field">
+              <label for="l-senha">Senha</label>
+              <div class="pw"><input class="input" id="l-senha" type="password" autocomplete="current-password" required><button type="button" class="pw-toggle" aria-label="Mostrar senha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+            </div>
+            <button type="button" class="link" data-ir="recuperar">Esqueci minha senha</button>
+            <p class="form-error" role="alert"></p>
+            <button class="btn btn-signal btn-block" type="submit">Entrar</button>
+          </form>
+        </section>
+
+        <!-- CADASTRO -->
+        <section id="painel-cadastro" role="tabpanel" aria-labelledby="tab-cadastro" hidden>
+          <h1>Crie sua conta de cliente</h1>
+          <p class="muted sub">Leva menos de um minuto.</p>
+          <form id="form-cadastro" class="form" novalidate>
+            <div class="field"><label for="r-nome">Nome completo</label><input class="input" id="r-nome" autocomplete="name" required></div>
+            <div class="field"><label for="r-email">E-mail</label><input class="input" id="r-email" type="email" autocomplete="email" inputmode="email" required></div>
+            <div class="grid-2">
+              <div class="field"><label for="r-tel">WhatsApp</label><input class="input" id="r-tel" type="tel" autocomplete="tel" inputmode="tel" placeholder="(00) 00000-0000" required></div>
+              <div class="field"><label for="r-doc">CPF ou CNPJ <span class="opt">opcional</span></label><input class="input" id="r-doc" inputmode="numeric" autocomplete="off"></div>
+            </div>
+            <div class="field"><label for="r-empresa">Empresa <span class="opt">opcional</span></label><input class="input" id="r-empresa" autocomplete="organization"></div>
+            <div class="field">
+              <label for="r-senha">Crie uma senha</label>
+              <div class="pw"><input class="input" id="r-senha" type="password" autocomplete="new-password" minlength="8" required aria-describedby="r-senha-hint"><button type="button" class="pw-toggle" aria-label="Mostrar senha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+              <div class="meter" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+              <span class="hint" id="r-senha-hint">Mínimo de 8 caracteres. Misture letras, números e símbolos.</span>
+            </div>
+            <label class="check"><input type="checkbox" id="r-termos" required> <span>Li e aceito os <a href="#" id="ver-termos">termos de uso e a política de privacidade</a>.</span></label>
+            <p class="form-error" role="alert"></p>
+            <button class="btn btn-signal btn-block" type="submit">Criar conta</button>
+          </form>
+        </section>
+
+        <!-- CONFIRMAR E-MAIL (código enviado pelo Cognito) -->
+        <section id="painel-confirmar" hidden>
+          <h1>Confirme seu e-mail</h1>
+          <p class="muted sub">Enviamos um código de 6 dígitos para <b id="conf-email"></b>. Confira também a caixa de spam.</p>
+          <form id="form-confirmar" class="form" novalidate>
+            <div class="field"><label for="c-codigo">Código</label><input class="input code" id="c-codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*" required></div>
+            <p class="form-error" role="alert"></p>
+            <p class="form-ok" role="status"></p>
+            <button class="btn btn-signal btn-block" type="submit">Confirmar e entrar</button>
+            <div class="links-row">
+              <button type="button" class="link" id="reenviar">Reenviar código</button>
+              <button type="button" class="link" data-ir="entrar">Voltar para entrar</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- RECUPERAR SENHA (código por e-mail) -->
+        <section id="painel-recuperar" hidden>
+          <h1>Recuperar senha</h1>
+          <p class="muted sub" id="rec-sub">Informe seu e-mail e enviaremos um código para criar uma nova senha.</p>
+          <form id="form-recuperar" class="form" novalidate>
+            <div class="field"><label for="f-email">E-mail</label><input class="input" id="f-email" type="email" autocomplete="email" inputmode="email" required></div>
+            <p class="form-error" role="alert"></p>
+            <p class="form-ok" role="status"></p>
+            <button class="btn btn-signal btn-block" type="submit">Enviar código</button>
+            <button type="button" class="link" data-ir="entrar">Voltar para entrar</button>
+          </form>
+          <form id="form-redefinir" class="form" novalidate hidden>
+            <div class="field"><label for="rd-codigo">Código recebido por e-mail</label><input class="input code" id="rd-codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required></div>
+            <div class="field">
+              <label for="rd-senha">Nova senha</label>
+              <div class="pw"><input class="input" id="rd-senha" type="password" autocomplete="new-password" minlength="8" required><button type="button" class="pw-toggle" aria-label="Mostrar senha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+              <span class="hint">Mínimo de 8 caracteres.</span>
+            </div>
+            <p class="form-error" role="alert"></p>
+            <button class="btn btn-signal btn-block" type="submit">Salvar nova senha e entrar</button>
+            <button type="button" class="link" data-ir="entrar">Voltar para entrar</button>
+          </form>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="termos" class="sheet">
+    <form method="dialog">
+      <h2>Termos de uso e privacidade</h2>
+      <p>Usamos seus dados de cadastro (nome, e-mail, WhatsApp, empresa e documento) apenas para identificar você, prestar os serviços contratados, emitir cobranças e responder chamados. Não vendemos nem compartilhamos seus dados com terceiros, exceto quando necessário para a prestação do serviço ou por obrigação legal, conforme a LGPD.</p>
+      <p>Você pode pedir a correção ou a exclusão dos seus dados a qualquer momento pelo e-mail de contato.</p>
+      <p class="muted">Substitua este texto pelos seus termos oficiais antes de publicar.</p>
+      <button class="btn btn-signal">Entendi</button>
+    </form>
+  </dialog>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/acesso.js"></script>
+  <script src="assets/js/pwa.js" defer></script>
+</body>
+</html>

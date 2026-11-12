@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Meu painel | MURILO ROQUE PRO</title>
+  <meta name="theme-color" content="#070c1a">
+  <meta name="robots" content="noindex">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MR PRO">
+  <link rel="apple-touch-icon" href="assets/img/icon-180.png">
+  <link rel="icon" type="image/png" href="assets/img/icon-32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Unbounded:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body class="app-body">
+  <div class="app" id="app" hidden>
+    <!-- Barra lateral (desktop/tablet) -->
+    <aside class="side">
+      <a href="index.html" class="side-brand" aria-label="Ir para o site">
+        <img src="assets/img/emblem-white.png" alt="" width="30" height="30">
+        <img src="assets/img/wordmark-white.png" alt="MURILO ROQUE PRO" width="150" height="13">
+      </a>
+      <nav class="side-nav" aria-label="Área do cliente">
+        <a href="#/inicio" data-v="inicio"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Início</span></a>
+        <a href="#/projetos" data-v="projetos"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3.5V7"/></svg><span>Projetos</span></a>
+        <a href="#/faturas" data-v="faturas"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span>Faturas</span></a>
+        <a href="#/suporte" data-v="suporte"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg><span>Suporte</span></a>
+        <a href="#/arquivos" data-v="arquivos" class="side-only"><svg viewBox="0 0 24 24"><path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg><span>Arquivos</span></a>
+        <a href="#/conta" data-v="conta"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Conta</span></a>
+      </nav>
+      <div class="side-foot">
+        <a class="btn btn-ghost btn-block" id="whats" href="#" target="_blank" rel="noopener">Falar no WhatsApp</a>
+        <button class="btn btn-ghost btn-block sair">Sair</button>
+      </div>
+    </aside>
+
+    <!-- Conteúdo -->
+    <div class="main">
+      <header class="appbar">
+        <img class="appbar-mark" src="assets/img/emblem-white.png" alt="" width="28" height="28">
+        <h1 id="titulo">Início</h1>
+        <div class="avatar" id="avatar" aria-hidden="true"></div>
+      </header>
+      <div class="demo-banner" id="demo-banner" hidden>Modo demonstração: os projetos e faturas abaixo são exemplos.</div>
+      <main class="view" id="view" tabindex="-1" aria-live="polite"></main>
+    </div>
+
+    <!-- Abas inferiores (celular) -->
+    <nav class="tabbar" aria-label="Área do cliente">
+      <a href="#/inicio" data-v="inicio"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Início</span></a>
+      <a href="#/projetos" data-v="projetos"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3.5V7"/></svg><span>Projetos</span></a>
+      <a href="#/faturas" data-v="faturas"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span>Faturas</span></a>
+      <a href="#/suporte" data-v="suporte"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg><span>Suporte</span></a>
+      <a href="#/conta" data-v="conta"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Conta</span></a>
+    </nav>
+  </div>
+
+  <div class="boot" id="boot"><img src="assets/img/emblem-white.png" alt="Carregando" width="56" height="56"></div>
+
+  <dialog class="sheet" id="sheet"><div id="sheet-body"></div></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/painel.js"></script>
+  <script src="assets/js/pwa.js" defer></script>
+</body>
+</html>

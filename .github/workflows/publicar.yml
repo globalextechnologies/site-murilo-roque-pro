@@ -1,0 +1,58 @@
+name: Publicar site
+
+# Publica sozinho a cada mudança na branch main.
+# Também dá para rodar à mão em Actions > Publicar site > Run workflow, escolhendo a ação.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'aws/**'
+      - '.github/workflows/publicar.yml'
+  workflow_dispatch:
+    inputs:
+      acao:
+        description: 'O que fazer'
+        type: choice
+        default: publicar
+        options:
+          - publicar    # infraestrutura + site
+          - site        # só os arquivos do site (mais rápido)
+          - zona        # cria a zona DNS e mostra os nameservers para a Hostinger
+          - verificar   # confere se a Hostinger já aponta para a AWS
+
+permissions:
+  id-token: write   # login na AWS sem chave guardada (OIDC)
+  contents: read
+
+concurrency:
+  group: publicar-site
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    name: ${{ github.event.inputs.acao || 'publicar' }}
+    runs-on: ubuntu-latest
+    # Só roda depois que a AWS estiver conectada (variável AWS_ROLE_ARN criada no repositório)
+    if: ${{ vars.AWS_ROLE_ARN != '' }}
+    timeout-minutes: 45
+    env:
+      ACAO: ${{ github.event.inputs.acao || 'publicar' }}
+      AUTOMATICO: ${{ github.event_name == 'push' && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Entrar na AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          role-session-name: publicar-site-${{ github.run_id }}
+          aws-region: us-east-1
+
+      - name: Instalar AWS SAM
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - name: Executar
+        run: bash aws/deploy.sh "$ACAO"

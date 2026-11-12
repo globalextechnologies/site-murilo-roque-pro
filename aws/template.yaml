@@ -1,0 +1,365 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: MURILO ROQUE PRO - site (S3 + CloudFront) e area do cliente (Cognito + API + Lambda Python + DynamoDB)
+
+Parameters:
+  Dominio:
+    Type: String
+    Default: muriloroque.pro
+    Description: Dominio principal do site (sem www)
+  HostedZoneId:
+    Type: AWS::Route53::HostedZone::Id
+    Description: Zona do Route 53 do dominio (criada pelo deploy.sh zona)
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Architectures: [arm64]
+    MemorySize: 256
+    Timeout: 10
+
+Resources:
+  # ------------------------------------------------------------------
+  # SITE: S3 privado + CloudFront + certificado HTTPS + DNS
+  # ------------------------------------------------------------------
+  Certificado:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref Dominio
+      SubjectAlternativeNames:
+        - !Sub www.${Dominio}
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Ref Dominio
+          HostedZoneId: !Ref HostedZoneId
+        - DomainName: !Sub www.${Dominio}
+          HostedZoneId: !Ref HostedZoneId
+
+  SiteBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+
+  SiteOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub ${AWS::StackName}-site-oac
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # Redireciona www.muriloroque.pro -> muriloroque.pro
+  RedirecionaWww:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub ${AWS::StackName}-redireciona-www
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Redireciona www para o dominio principal
+        Runtime: cloudfront-js-2.0
+      FunctionCode: !Sub |
+        function handler(event) {
+          var req = event.request;
+          var host = req.headers.host ? req.headers.host.value : '';
+          if (host.indexOf('www.') === 0) {
+            var qs = '';
+            var keys = Object.keys(req.querystring);
+            if (keys.length) {
+              qs = '?' + keys.map(function (k) { return k + '=' + req.querystring[k].value; }).join('&');
+            }
+            return { statusCode: 301, statusDescription: 'Moved Permanently',
+                     headers: { location: { value: 'https://${Dominio}' + req.uri + qs } } };
+          }
+          return req;
+        }
+
+  Distribuicao:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: !Sub Site ${Dominio}
+        Enabled: true
+        Aliases:
+          - !Ref Dominio
+          - !Sub www.${Dominio}
+        DefaultRootObject: index.html
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        PriceClass: PriceClass_All   # inclui os servidores do Brasil
+        ViewerCertificate:
+          AcmCertificateArn: !Ref Certificado
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+        Origins:
+          - Id: site-s3
+            DomainName: !GetAtt SiteBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt SiteOAC.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+        DefaultCacheBehavior:
+          TargetOriginId: site-s3
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6          # Managed-CachingOptimized
+          ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03 # Managed-SecurityHeadersPolicy
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt RedirecionaWww.FunctionMetadata.FunctionARN
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 404
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 60
+          - ErrorCode: 404
+            ResponseCode: 404
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 60
+
+  SiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SiteBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: SomenteCloudFront
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub ${SiteBucket.Arn}/*
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribuicao}
+
+  RegistrosDns:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      RecordSets:
+        - Name: !Ref Dominio
+          Type: A
+          AliasTarget: { DNSName: !GetAtt Distribuicao.DomainName, HostedZoneId: Z2FDTNDATAQYW2 }
+        - Name: !Ref Dominio
+          Type: AAAA
+          AliasTarget: { DNSName: !GetAtt Distribuicao.DomainName, HostedZoneId: Z2FDTNDATAQYW2 }
+        - Name: !Sub www.${Dominio}
+          Type: A
+          AliasTarget: { DNSName: !GetAtt Distribuicao.DomainName, HostedZoneId: Z2FDTNDATAQYW2 }
+        - Name: !Sub www.${Dominio}
+          Type: AAAA
+          AliasTarget: { DNSName: !GetAtt Distribuicao.DomainName, HostedZoneId: Z2FDTNDATAQYW2 }
+
+  # ------------------------------------------------------------------
+  # CONTAS DOS CLIENTES: Cognito
+  # ------------------------------------------------------------------
+  Clientes:
+    Type: AWS::Cognito::UserPool
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      UserPoolName: !Sub ${AWS::StackName}-clientes
+      UsernameAttributes: [email]
+      UsernameConfiguration:
+        CaseSensitive: false
+      AutoVerifiedAttributes: [email]
+      DeletionProtection: ACTIVE
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: false
+          RequireUppercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+          TemporaryPasswordValidityDays: 7
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Required: true
+          Mutable: true
+        - Name: name
+          AttributeDataType: String
+          Required: true
+          Mutable: true
+        - Name: telefone
+          AttributeDataType: String
+          Mutable: true
+          StringAttributeConstraints: { MaxLength: '32' }
+        - Name: empresa
+          AttributeDataType: String
+          Mutable: true
+          StringAttributeConstraints: { MaxLength: '120' }
+        - Name: documento
+          AttributeDataType: String
+          Mutable: true
+          StringAttributeConstraints: { MaxLength: '24' }
+      EmailConfiguration:
+        EmailSendingAccount: COGNITO_DEFAULT
+      VerificationMessageTemplate:
+        DefaultEmailOption: CONFIRM_WITH_CODE
+        EmailSubject: Seu código de acesso MURILO ROQUE PRO
+        EmailMessage: 'Olá! Seu código da área do cliente MURILO ROQUE PRO é: {####}. Se você não pediu este código, ignore este e-mail.'
+
+  ClientesApp:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: site
+      UserPoolId: !Ref Clientes
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      PreventUserExistenceErrors: ENABLED
+      EnableTokenRevocation: true
+      AccessTokenValidity: 60
+      IdTokenValidity: 60
+      RefreshTokenValidity: 30
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+        RefreshToken: days
+      ReadAttributes: [email, email_verified, name, custom:telefone, custom:empresa, custom:documento]
+      WriteAttributes: [email, name, custom:telefone, custom:empresa, custom:documento]
+
+  # ------------------------------------------------------------------
+  # DADOS DA AREA DO CLIENTE: DynamoDB + arquivos no S3
+  # ------------------------------------------------------------------
+  Tabela:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+
+  ArquivosBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+
+  # ------------------------------------------------------------------
+  # API: HTTP API com login do Cognito + Lambda em Python
+  # ------------------------------------------------------------------
+  Api:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+          - !Sub https://${Dominio}
+          - !Sub https://www.${Dominio}
+          - http://localhost:8000
+        AllowHeaders: [authorization, content-type]
+        AllowMethods: [GET, POST, OPTIONS]
+        MaxAge: 3600
+      Auth:
+        DefaultAuthorizer: Cognito
+        Authorizers:
+          Cognito:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              issuer: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${Clientes}
+              audience:
+                - !Ref ClientesApp
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 50
+        ThrottlingRateLimit: 20
+
+  ApiFuncao:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: app.handler
+      Description: Area do cliente MURILO ROQUE PRO
+      Environment:
+        Variables:
+          TABELA: !Ref Tabela
+          BUCKET_ARQUIVOS: !Ref ArquivosBucket
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref Tabela
+        - S3ReadPolicy:
+            BucketName: !Ref ArquivosBucket
+      Events:
+        Listar:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Method: GET
+            Path: /{recurso}
+        AbrirChamado:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Method: POST
+            Path: /chamados
+
+  ApiLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${ApiFuncao}
+      RetentionInDays: 30
+
+Outputs:
+  SiteUrl:
+    Value: !Sub https://${Dominio}
+  CloudFrontUrl:
+    Description: Endereco provisorio do site (funciona antes do DNS propagar)
+    Value: !Sub https://${Distribuicao.DomainName}
+  SiteBucket:
+    Value: !Ref SiteBucket
+  DistribuicaoId:
+    Value: !Ref Distribuicao
+  ApiUrl:
+    Value: !Sub https://${Api}.execute-api.${AWS::Region}.amazonaws.com
+  Regiao:
+    Value: !Ref AWS::Region
+  UserPoolId:
+    Value: !Ref Clientes
+  UserPoolClientId:
+    Value: !Ref ClientesApp
+  Tabela:
+    Value: !Ref Tabela
+  ArquivosBucket:
+    Value: !Ref ArquivosBucket
